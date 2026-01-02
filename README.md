@@ -49,7 +49,7 @@
 2. 进入仓库：**Settings → Pages**
 3. Source 选择：`Deploy from a branch`
 4. Branch 选择：`main / (root)`
-5. 保存后即可获得访问地址，例如：https://guiyan201213-dev.github.io/fortune-h5/
+5. 保存后即可获得访问地址，例如：https://你的用户名.github.io/fortune-h5/
 ---
 
 ### ✅ Netlify / Vercel / Cloudflare Pages（可选）
