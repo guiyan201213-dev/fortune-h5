@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>今日运势测算</title>
+  <style>
+    :root{
+      --glass: rgba(255,255,255,.12);
+      --stroke: rgba(255,255,255,.18);
+      --shadow: 0 18px 50px rgba(0,0,0,.22);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.68);
+    }
+    *{margin:0;padding:0;box-sizing:border-box;font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;}
+    body{
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      background: radial-gradient(1200px 700px at 20% 10%, rgba(255, 151, 197, .55), transparent 60%),
+                  radial-gradient(900px 600px at 85% 30%, rgba(95, 187, 255, .55), transparent 60%),
+                  radial-gradient(900px 600px at 40% 85%, rgba(153, 255, 200, .4), transparent 60%),
+                  linear-gradient(135deg, #10182F, #0A1020);
+      overflow-x:hidden;
+      padding: 18px;
+      color: var(--text);
+    }
+
+    /* subtle floating stars */
+    .stars{
+      position:fixed; inset:0;
+      pointer-events:none;
+      opacity:.35;
+      background-image:
+        radial-gradient(2px 2px at 20px 30px, rgba(255,255,255,.9), transparent 55%),
+        radial-gradient(1.5px 1.5px at 120px 80px, rgba(255,255,255,.8), transparent 55%),
+        radial-gradient(1px 1px at 200px 140px, rgba(255,255,255,.7), transparent 55%),
+        radial-gradient(2px 2px at 280px 90px, rgba(255,255,255,.8), transparent 55%),
+        radial-gradient(1px 1px at 360px 30px, rgba(255,255,255,.7), transparent 55%),
+        radial-gradient(2px 2px at 460px 160px, rgba(255,255,255,.8), transparent 55%);
+      background-size: 520px 220px;
+      animation: drift 12s linear infinite;
+    }
+    @keyframes drift{ from{ transform: translateY(0);} to{ transform: translateY(-220px);} }
+
+    .wrap{
+      width:min(460px, 100%);
+      position:relative;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      justify-content:center;
+      margin-bottom: 14px;
+      user-select:none;
+    }
+    .logo{
+      width: 36px; height: 36px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(255,255,255,.35), rgba(255,255,255,.08));
+      border: 1px solid rgba(255,255,255,.22);
+      box-shadow: 0 8px 18px rgba(0,0,0,.22);
+      display:grid; place-items:center;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .logo span{
+      font-size: 18px;
+      filter: drop-shadow(0 6px 14px rgba(0,0,0,.25));
+    }
+    .brand h1{
+      font-size: 18px;
+      letter-spacing: .5px;
+      font-weight: 700;
+    }
+    .brand p{
+      font-size: 12px;
+      color: var(--muted);
+      margin-top:2px;
+    }
+
+    .card{
+      background: var(--glass);
+      border: 1px solid var(--stroke);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      padding: 18px;
+      position:relative;
+      overflow:hidden;
+    }
+    .card::before{
+      content:"";
+      position:absolute;
+      inset:-60px;
+      background: conic-gradient(from 180deg, rgba(255,255,255,.0), rgba(255,255,255,.18), rgba(255,255,255,.0));
+      filter: blur(20px);
+      opacity:.5;
+      animation: rotate 8s linear infinite;
+    }
+    @keyframes rotate{ to{ transform: rotate(360deg);} }
+    .card > *{ position:relative; z-index:1; }
+
+    .headline{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom: 14px;
+    }
+    .headline .title{
+      display:flex;
+      flex-direction:column;
+      gap:5px;
+    }
+    .headline h2{
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing:.4px;
+    }
+    .headline small{
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    .chip{
+      font-size: 12px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.2);
+      background: rgba(255,255,255,.08);
+      white-space: nowrap;
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+    .chip b{font-weight:800;}
+
+    .form{
+      display:grid;
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap: 6px;
+    }
+    label{
+      font-size: 12px;
+      color: var(--muted);
+    }
+    input, select{
+      width: 100%;
+      padding: 12px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(10,16,32,.25);
+      color: var(--text);
+      outline: none;
+      transition: .25s ease;
+    }
+    input::placeholder{ color: rgba(255,255,255,.45); }
+    input:focus, select:focus{
+      border-color: rgba(255,255,255,.45);
+      box-shadow: 0 0 0 4px rgba(255,255,255,.08);
+      transform: translateY(-1px);
+    }
+
+    .btn{
+      margin-top: 6px;
+      width: 100%;
+      padding: 13px 14px;
+      border-radius: 16px;
+      border: none;
+      cursor:pointer;
+      color: #0A1020;
+      font-weight: 900;
+      letter-spacing: .6px;
+      background: linear-gradient(135deg, #FFB7E3, #6AD6FF, #B7FFDC);
+      box-shadow: 0 16px 30px rgba(0,0,0,.25);
+      transition: .22s ease;
+      position:relative;
+      overflow:hidden;
+    }
+    .btn::after{
+      content:"";
+      position:absolute; inset:0;
+      background: radial-gradient(120px 80px at 20% 30%, rgba(255,255,255,.7), transparent 60%);
+      opacity:.65;
+      transform: translateX(-60%);
+      transition: .35s ease;
+    }
+    .btn:hover::after{ transform: translateX(0%); }
+    .btn:active{ transform: translateY(1px) scale(.99); }
+    .btn[disabled]{
+      opacity:.6; cursor:not-allowed; filter: grayscale(.2);
+    }
+
+    .result{
+      margin-top: 14px;
+      border-radius: 18px;
+      padding: 14px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.07);
+      display:none;
+      animation: fadeIn .55s ease both;
+    }
+    @keyframes fadeIn{
+      from{ opacity:0; transform: translateY(10px); }
+      to{ opacity:1; transform: translateY(0); }
+    }
+    .resultHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom: 10px;
+    }
+    .resultHeader h3{
+      font-size: 16px;
+      font-weight: 900;
+    }
+    .badge{
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.18);
+      white-space:nowrap;
+    }
+
+    .scoreRow{
+      display:grid;
+      gap: 10px;
+    }
+    .bar{
+      display:grid;
+      gap: 6px;
+    }
+    .barTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      font-size: 12px;
+      color: rgba(255,255,255,.78);
+    }
+    .track{
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.10);
+      overflow:hidden;
+      border: 1px solid rgba(255,255,255,.12);
+    }
+    .fill{
+      height:100%;
+      width:0%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(255,183,227,.95), rgba(106,214,255,.95), rgba(183,255,220,.95));
+      transition: width .65s ease;
+    }
+
+    .advice{
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 16px;
+      background: rgba(10,16,32,.22);
+      border: 1px dashed rgba(255,255,255,.18);
+      line-height: 1.65;
+      color: rgba(255,255,255,.86);
+      font-size: 13px;
+      white-space: pre-wrap;
+    }
+
+    .meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .tag{
+      font-size: 12px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.08);
+      color: rgba(255,255,255,.86);
+    }
+
+    .footer{
+      margin-top: 14px;
+      text-align:center;
+      color: rgba(255,255,255,.55);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    /* mobile polish */
+    @media (max-width: 360px){
+      .headline h2{ font-size: 16px; }
+      .btn{ padding: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="stars"></div>
+
+  <div class="wrap">
+    <div class="brand">
+      <div class="logo"><span>🔮</span></div>
+      <div>
+        <h1>今日运势测算</h1>
+        <p>输入信息，抽取属于你的幸运提示</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="headline">
+        <div class="title">
+          <h2>测一测：你今天的好运指数</h2>
+          <small>建议每天测一次，保持心态与行动同步 ✨</small>
+        </div>
+        <div class="chip">今日：<b id="todayStr"></b></div>
+      </div>
+
+      <div class="form">
+        <div class="field">
+          <label>你的名字（可选）</label>
+          <input id="name" type="text" placeholder="例如：小桂 / 佳佳 / Alex" maxlength="12" />
+        </div>
+
+        <div class="field">
+          <label>选择星座</label>
+          <select id="zodiac">
+            <option value="白羊座">白羊座 ♈</option>
+            <option value="金牛座">金牛座 ♉</option>
+            <option value="双子座">双子座 ♊</option>
+            <option value="巨蟹座">巨蟹座 ♋</option>
+            <option value="狮子座">狮子座 ♌</option>
+            <option value="处女座">处女座 ♍</option>
+            <option value="天秤座">天秤座 ♎</option>
+            <option value="天蝎座">天蝎座 ♏</option>
+            <option value="射手座">射手座 ♐</option>
+            <option value="摩羯座">摩羯座 ♑</option>
+            <option value="水瓶座">水瓶座 ♒</option>
+            <option value="双鱼座">双鱼座 ♓</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>选择日期（可选，用于生成更个性化运势）</label>
+          <input id="date" type="date" />
+        </div>
+
+        <button class="btn" id="btn">✨ 一键测运势</button>
+      </div>
+
+      <div class="result" id="result">
+        <div class="resultHeader">
+          <h3 id="resultTitle">你的运势结果</h3>
+          <div class="badge" id="levelBadge">好运值：--</div>
+        </div>
+
+        <div class="scoreRow">
+          <div class="bar">
+            <div class="barTop"><span>总评</span><span id="s_total">--</span></div>
+            <div class="track"><div class="fill" id="b_total"></div></div>
+          </div>
+
+          <div class="bar">
+            <div class="barTop"><span>事业</span><span id="s_career">--</span></div>
+            <div class="track"><div class="fill" id="b_career"></div></div>
+          </div>
+
+          <div class="bar">
+            <div class="barTop"><span>财运</span><span id="s_money">--</span></div>
+            <div class="track"><div class="fill" id="b_money"></div></div>
+          </div>
+
+          <div class="bar">
+            <div class="barTop"><span>感情</span><span id="s_love">--</span></div>
+            <div class="track"><div class="fill" id="b_love"></div></div>
+          </div>
+
+          <div class="bar">
+            <div class="barTop"><span>健康</span><span id="s_health">--</span></div>
+            <div class="track"><div class="fill" id="b_health"></div></div>
+          </div>
+        </div>
+
+        <div class="meta" id="metaTags"></div>
+
+        <div class="advice" id="adviceText"></div>
+
+        <!-- 新增：海报按钮（不改变原逻辑） -->
+        <button class="btn" id="posterBtn" style="margin-top:12px;display:none;">📌 生成分享海报</button>
+      </div>
+
+      <div class="footer">
+        提示：本页为娱乐向测算结果，仅作心情参考。<br/>
+        你可以改成“抽签”“塔罗”“生肖”等主题，我也能继续升级。
+      </div>
+    </div>
+  </div>
+
+  <!-- 新增：海报弹窗 -->
+  <div id="posterModal" style="
+    position:fixed;inset:0;
+    background:rgba(0,0,0,.55);
+    display:none;
+    justify-content:center;
+    align-items:center;
+    padding:18px;
+    z-index:9999;
+  ">
+    <div style="
+      width:min(420px,100%);
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.18);
+      border-radius:22px;
+      padding:14px;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 18px 50px rgba(0,0,0,.35);
+      position:relative;
+    ">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div style="color:rgba(255,255,255,.88);font-weight:900;">你的分享海报</div>
+        <button id="closePoster" style="
+          background:rgba(255,255,255,.10);
+          border:1px solid rgba(255,255,255,.18);
+          color:rgba(255,255,255,.9);
+          border-radius:999px;
+          padding:6px 10px;
+          cursor:pointer;
+        ">关闭</button>
+      </div>
+
+      <div style="border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.14);">
+        <canvas id="posterCanvas" width="1080" height="1920" style="width:100%;display:block;"></canvas>
+      </div>
+
+      <div style="margin-top:10px;color:rgba(255,255,255,.75);font-size:12px;line-height:1.6;">
+        📱 手机：长按图片保存到相册<br/>
+        💻 电脑：点击「下载海报」保存
+      </div>
+
+      <button class="btn" id="downloadPoster" style="margin-top:10px;">⬇️ 下载海报</button>
+    </div>
+  </div>
+
+  <script>
+    // ---------- helpers ----------
+    const $ = (id) => document.getElementById(id);
+    const today = new Date();
+    const fmt = (d) => {
+      const y = d.getFullYear();
+      const m = String(d.getMonth()+1).padStart(2,'0');
+      const da = String(d.getDate()).padStart(2,'0');
+      return `${y}.${m}.${da}`;
+    };
+    $("todayStr").textContent = fmt(today);
+
+    // seeded random: make same inputs produce stable results (optional)
+    function hashSeed(str){
+      let h = 2166136261;
+      for (let i = 0; i < str.length; i++){
+        h ^= str.charCodeAt(i);
+        h += (h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24);
+      }
+      return (h >>> 0);
+    }
+    function mulberry32(a){
+      return function(){
+        let t = a += 0x6D2B79F5;
+        t = Math.imul(t ^ t >>> 15, t | 1);
+        t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      }
+    }
+    function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
+
+    const colors = ["粉雾玫瑰","海盐蓝","薄荷绿","暮光紫","琥珀金","月光银","珊瑚橙","深空蓝"];
+    const actions = [
+      "把重要事情写成清单，会让你更顺。",
+      "今天适合主动一点：发消息、提方案、争取机会。",
+      "少一点纠结，多一点行动，你会收获惊喜。",
+      "建议早睡或少熬夜，你的状态就是运气来源。",
+      "有好消息在路上，保持耐心与礼貌。",
+      "适合断舍离：清理桌面/手机相册，会带来轻盈感。",
+      "给自己一点奖励（饮品/散步/音乐），好运更容易出现。",
+      "不要被情绪带走，先解决最小的问题，再处理大的。",
+      "今天适合谈合作：用数据说话更有说服力。",
+      "遇到分歧先倾听，反而能掌控局面。"
+    ];
+    const overviewText = [
+      "整体能量上扬，越主动越有收获。",
+      "节奏平稳，适合把之前的事情收尾。",
+      "灵感不错，别急着否定自己。",
+      "有点小波动，但你能稳住局面。",
+      "运势偏强，关键是抓住第一时间的机会。"
+    ];
+
+    function levelFromScore(score){
+      if(score >= 90) return "超强运势 🏆";
+      if(score >= 80) return "好运爆棚 ✨";
+      if(score >= 70) return "稳中向好 🌤️";
+      if(score >= 60) return "小有起伏 🌙";
+      return "需要蓄力 🍃";
+    }
+
+    function renderScore(idScore, idBar, v){
+      $(idScore).textContent = v + " / 100";
+      requestAnimationFrame(() => {
+        $(idBar).style.width = v + "%";
+      });
+    }
+
+    function genFortune(){
+      const name = $("name").value.trim() || "你";
+      const zodiac = $("zodiac").value;
+      const date = $("date").value || fmt(new Date()).replaceAll(".","-");
+      const seedStr = `${name}|${zodiac}|${date}`;
+      const rnd = mulberry32(hashSeed(seedStr));
+
+      // base score with slight bias depending on zodiac
+      const zodiacBias = (z) => {
+        const map = {
+          "白羊座": 4, "金牛座": 2, "双子座": 3, "巨蟹座": 1,
+          "狮子座": 4, "处女座": 2, "天秤座": 3, "天蝎座": 3,
+          "射手座": 4, "摩羯座": 2, "水瓶座": 3, "双鱼座": 2
+        };
+        return map[z] || 2;
+      };
+
+      const base = 58 + Math.floor(rnd()*28) + zodiacBias(zodiac);
+      const career = clamp(base + Math.floor(rnd()*18) - 8, 35, 98);
+      const money  = clamp(base + Math.floor(rnd()*20) - 10, 30, 98);
+      const love   = clamp(base + Math.floor(rnd()*22) - 12, 25, 99);
+      const health = clamp(base + Math.floor(rnd()*16) - 6, 40, 99);
+      const total  = clamp(Math.round((career + money + love + health) / 4 + (rnd()*6 - 3)), 30, 99);
+
+      const luckColor = colors[Math.floor(rnd()*colors.length)];
+      const luckNum = 1 + Math.floor(rnd()*9);
+      const luckyTime = ["08:00-10:00","10:00-12:00","12:00-14:00","14:00-16:00","16:00-18:00","19:00-21:00"][Math.floor(rnd()*6)];
+      const luckyItem = ["耳机🎧","咖啡☕","笔记本📒","香水🌸","钥匙扣🔑","手链📿","薄荷糖🍬","运动鞋👟"][Math.floor(rnd()*8)];
+      const overview = overviewText[Math.floor(rnd()*overviewText.length)];
+      const action = actions[Math.floor(rnd()*actions.length)];
+
+      // compose advice
+      const advice = `【${name} · ${zodiac}】\n` +
+        `${overview}\n\n` +
+        `✅ 今日行动建议：${action}\n` +
+        `💡 小提示：把最重要的一件事“先做 10 分钟”，你会发现好运会跟着动起来。`;
+
+      return {name, zodiac, date, total, career, money, love, health, luckColor, luckNum, luckyTime, luckyItem, advice};
+    }
+
+    // =========================
+    // 运势按钮逻辑（原逻辑不变）
+    // =========================
+    const btn = $("btn");
+    btn.addEventListener("click", () => {
+      btn.disabled = true;
+      btn.textContent = "🔮 正在抽取运势...";
+
+      // reset bars
+      ["total","career","money","love","health"].forEach(k=>{
+        $("b_"+k).style.width = "0%";
+        $("s_"+k).textContent = "--";
+      });
+
+      setTimeout(() => {
+        const f = genFortune();
+
+        // ✅ 新增：记录本次运势，供海报使用
+        lastFortune = f;
+
+        $("result").style.display = "block";
+
+        $("resultTitle").textContent = `${f.name}的今日运势结果`;
+        $("levelBadge").textContent = `${levelFromScore(f.total)} · ${f.total}`;
+
+        renderScore("s_total", "b_total", f.total);
+        renderScore("s_career", "b_career", f.career);
+        renderScore("s_money", "b_money", f.money);
+        renderScore("s_love", "b_love", f.love);
+        renderScore("s_health", "b_health", f.health);
+
+        // tags
+        $("metaTags").innerHTML = "";
+        const tags = [
+          `幸运色：${f.luckColor}`,
+          `幸运数字：${f.luckNum}`,
+          `幸运时段：${f.luckyTime}`,
+          `幸运物：${f.luckyItem}`,
+          `关键词：${f.total>=80 ? "主动 / 吸引力" : f.total>=65 ? "节奏 / 稳定" : "蓄力 / 调整"}`
+        ];
+        tags.forEach(t=>{
+          const el = document.createElement("div");
+          el.className = "tag";
+          el.textContent = t;
+          $("metaTags").appendChild(el);
+        });
+
+        $("adviceText").textContent = f.advice;
+
+        // ✅ 新增：显示生成海报按钮
+        $("posterBtn").style.display = "block";
+
+        btn.disabled = false;
+        btn.textContent = "✨ 再测一次";
+      }, 900);
+    });
+
+    // =================================================
+    // ✅ 新增：生成分享海报功能（Canvas绘制，无第三方库）
+    // =================================================
+    let lastFortune = null;
+
+    const posterBtn = $("posterBtn");
+    const posterModal = $("posterModal");
+    const closePoster = $("closePoster");
+    const downloadPoster = $("downloadPoster");
+    const canvas = $("posterCanvas");
+    const ctx = canvas.getContext("2d");
+
+    function roundRect(ctx, x, y, w, h, r) {
+      const rr = Math.min(r, w/2, h/2);
+      ctx.beginPath();
+      ctx.moveTo(x + rr, y);
+      ctx.arcTo(x + w, y, x + w, y + h, rr);
+      ctx.arcTo(x + w, y + h, x, y + h, rr);
+      ctx.arcTo(x, y + h, x, y, rr);
+      ctx.arcTo(x, y, x + w, y, rr);
+      ctx.closePath();
+    }
+
+    function drawPoster(f){
+      const W = canvas.width, H = canvas.height;
+      ctx.clearRect(0,0,W,H);
+
+      // 背景渐变
+      const g = ctx.createLinearGradient(0,0,W,H);
+      g.addColorStop(0, "#0A1020");
+      g.addColorStop(0.45, "#10182F");
+      g.addColorStop(1, "#07101F");
+      ctx.fillStyle = g;
+      ctx.fillRect(0,0,W,H);
+
+      // 氛围光晕
+      function glow(x,y,r,color,alpha){
+        const rg = ctx.createRadialGradient(x,y,0,x,y,r);
+        rg.addColorStop(0, `rgba(${color},${alpha})`);
+        rg.addColorStop(1, `rgba(${color},0)`);
+        ctx.fillStyle = rg;
+        ctx.beginPath();
+        ctx.arc(x,y,r,0,Math.PI*2);
+        ctx.fill();
+      }
+      glow(W*0.2, H*0.18, 520, "255,151,197", 0.55);
+      glow(W*0.82, H*0.22, 520, "95,187,255", 0.55);
+      glow(W*0.45, H*0.88, 620, "153,255,200", 0.40);
+
+      // 星点
+      ctx.globalAlpha = 0.55;
+      for(let i=0;i<70;i++){
+        const x = Math.random()*W;
+        const y = Math.random()*H;
+        const s = Math.random()*2.2 + 0.6;
+        ctx.fillStyle = "rgba(255,255,255,.85)";
+        ctx.beginPath();
+        ctx.arc(x,y,s,0,Math.PI*2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+
+      // 主卡片（玻璃拟态）
+      const pad = 78;
+      const cardX = pad, cardY = 240, cardW = W - pad*2, cardH = 1320;
+      ctx.save();
+      ctx.fillStyle = "rgba(255,255,255,.10)";
+      ctx.strokeStyle = "rgba(255,255,255,.18)";
+      ctx.lineWidth = 2;
+      roundRect(ctx, cardX, cardY, cardW, cardH, 54);
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+
+      // 角标
+      ctx.save();
+      ctx.fillStyle = "rgba(255,255,255,.14)";
+      roundRect(ctx, cardX+cardW-280, cardY+40, 240, 72, 36);
+      ctx.fill();
+      ctx.fillStyle = "rgba(255,255,255,.9)";
+      ctx.font = "bold 34px -apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif";
+      ctx.fillText("🔮 今日运势", cardX+cardW-255, cardY+90);
+      ctx.restore();
+
+      // 标题
+      ctx.fillStyle = "rgba(255,255,255,.94)";
+      ctx.font = "900 64px -apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif";
+      ctx.fillText(`${f.name}的运势报告`, cardX+60, cardY+140);
+
+      // 副标题
+      ctx.fillStyle = "rgba(255,255,255,.72)";
+      ctx.font = "38px -apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif";
+      ctx.fillText(`${f.zodiac} · ${f.date.replaceAll("-",".")}`, cardX+60, cardY+205);
+
+      // 总分大圆
+      const cx = cardX + cardW - 185;
+      const cy = cardY + 210;
+      const R = 110;
+      ctx.save();
+      ctx.fillStyle = "rgba(255,255,255,.10)";
+      ctx.beginPath();
+      ctx.arc(cx,cy,R,0,Math.PI*2);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255,255,255,.22)";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      // 进度弧
+      ctx.beginPath();
+      ctx.strokeStyle = "rgba(255,255,255,.86)";
+      ctx.lineWidth = 10;
+      ctx.lineCap = "round";
+      const start = -Math.PI/2;
+      const end = start + Math.PI*2*(f.total/100);
+      ctx.arc(cx,cy,R-18,start,end);
+      ctx.stroke();
+
+      ctx.fillStyle = "rgba(255,255,255,.95)";
+      ctx.font = "900 78px -apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(f.total, cx, cy+22);
+      ctx.fillStyle = "rgba(255,255,255,.75)";
+      ctx.font = "36px -apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif";
+      ctx.fillText("好运值", cx, cy+70);
+      ctx.restore();
+
+      // 分项条
+      const bars = [
+        ["事业", f.career],
+        ["财运", f.money],
+        ["感情", f.love],
+        ["健康", f.health],
+      ];
+
+      let y = cardY + 320;
+      ctx.textAlign = "left";
+
+      bars.forEach(([k,v])=>{
+        ctx.fillStyle = "rgba(255,255,255,.86)";
+        ctx.font = "700 44px -apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif";
+        ctx.fillText(k, cardX+60, y);
+
+        ctx.fillStyle = "rgba(255,255,255,.78)";
+        ctx.font = "40px -apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif";
+        ctx.fillText(`${v}/100`, cardX+cardW-200, y);
+
+        // track
+        const tx = cardX+60, ty = y+28, tw = cardW-120, th = 20;
+        ctx.fillStyle = "rgba(255,255,255,.10)";
+        roundRect(ctx, tx, ty, tw, th, 999);
+        ctx.fill();
+
+        // fill
+        ctx.fillStyle = "rgba(255,255,255,.86)";
+        roundRect(ctx, tx, ty, tw*(v/100), th, 999);
+        ctx.fill();
+
+        y += 120;
+      });
+
+      // 幸运信息
+      ctx.save();
+      ctx.fillStyle = "rgba(255,255,255,.10)";
+      roundRect(ctx, cardX+60, y, cardW-120, 230, 42);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255,255,255,.16)";
+      ctx.stroke();
+
+      ctx.fillStyle = "rgba(255,255,255,.92)";
+      ctx.font = "900 48px -apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif";
+      ctx.fillText("幸运提示", cardX+95, y+75);
+
+      ctx.fillStyle = "rgba(255,255,255,.82)";
+      ctx.font = "40px -apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif";
+      ctx.fillText(`幸运色：${f.luckColor}`, cardX+95, y+140);
+      ctx.fillText(`幸运数字：${f.luckNum}    幸运时段：${f.luckyTime}`, cardX+95, y+195);
+      ctx.restore();
+
+      // 建议文案（自动换行）
+      const adviceBoxY = y + 270;
+      ctx.save();
+      ctx.fillStyle = "rgba(10,16,32,.30)";
+      ctx.strokeStyle = "rgba(255,255,255,.16)";
+      ctx.setLineDash([10,8]);
+      roundRect(ctx, cardX+60, adviceBoxY, cardW-120, 330, 42);
+      ctx.fill();
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = "rgba(255,255,255,.90)";
+      ctx.font = "900 46px -apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif";
+      ctx.fillText("今日建议", cardX+95, adviceBoxY+80);
+
+      const text = f.advice.replace(/\n/g," ").replace(/\s+/g," ").trim();
+      ctx.fillStyle = "rgba(255,255,255,.80)";
+      ctx.font = "38px -apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif";
+      const maxWidth = cardW - 190;
+      let line = "", lineY = adviceBoxY+145;
+      for(const ch of text){
+        const test = line + ch;
+        if(ctx.measureText(test).width > maxWidth){
+          ctx.fillText(line, cardX+95, lineY);
+          line = ch;
+          lineY += 56;
+          if(lineY > adviceBoxY + 300) break;
+        }else{
+          line = test;
+        }
+      }
+      if(lineY <= adviceBoxY + 300) ctx.fillText(line, cardX+95, lineY);
+      ctx.restore();
+
+      // 底部品牌 & 引导
+      ctx.save();
+      ctx.fillStyle = "rgba(255,255,255,.65)";
+      ctx.font = "34px -apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("扫一扫 / 截图分享给朋友，一起接好运 ✨", W/2, H-170);
+      ctx.fillStyle = "rgba(255,255,255,.55)";
+      ctx.font = "30px -apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif";
+      ctx.fillText("（娱乐向测算，仅供心情参考）", W/2, H-120);
+      ctx.restore();
+    }
+
+    function openPoster(){
+      if(!lastFortune) return;
+      drawPoster(lastFortune);
+      posterModal.style.display = "flex";
+    }
+
+    posterBtn.addEventListener("click", openPoster);
+    closePoster.addEventListener("click", ()=> posterModal.style.display="none");
+    posterModal.addEventListener("click", (e)=>{
+      if(e.target === posterModal) posterModal.style.display="none";
+    });
+
+    downloadPoster.addEventListener("click", ()=>{
+      const a = document.createElement("a");
+      a.download = "fortune_poster.png";
+      a.href = canvas.toDataURL("image/png");
+      a.click();
+    });
+  </script>
+</body>
+</html>
